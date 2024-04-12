@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from io import StringIO
 
+import pandas
+
 
 def convert_arabic_to_roman(number: int) -> str:
     """
@@ -60,7 +62,27 @@ def convert_roman_to_arabic(number: str) -> int:
 
 
 def average_age_by_position(file):
-    pass
+    """
+    Функция принимает на вход CSV файл с данными о сотрудниках компании и
+    возращает словарь со средним возрастом сотрудников на каждой должности.
+
+    Args:
+        file: CSV файл
+
+    Returns:
+        file: словарь в следующем формате : {"index": [<Уникальные должности>], "columns": [["Возраст","mean"]],
+                                             "data": [[<Средний возраст для каждой должности соответственно>]]}
+    """
+    lines = [line.strip().split(",") for line in file.split(' ')]
+    headers = lines.pop(0)
+    dict_lines = [dict(zip(headers, row)) for row in lines]
+    file = pandas.DataFrame(dict_lines)
+    file['Возраст'] = file['Возраст'].astype('int')
+    agg_func = {
+        'Возраст': ['mean']
+    }
+    file = file.groupby(['Должность']).agg(agg_func)
+    return file.to_dict(orient='split')
 
 
 """
