@@ -2,6 +2,11 @@ from abc import ABC, abstractmethod
 from io import StringIO
 
 import pandas
+import random
+import string
+import json
+import csv
+import yaml
 
 
 def convert_arabic_to_roman(number: int) -> str:
@@ -113,25 +118,29 @@ class BaseWriter(ABC):
 class JSONWriter(BaseWriter):
     """Потомок BaseWriter с переопределением метода write для генерации файла в json формате"""
 
-    """Ваша реализация"""
+    def write(self, data: list[list[int, str, float]]) -> StringIO:
+        output = StringIO()
+        json.dump(data, output)
+        return output
 
-    pass
 
-
-class CSVWriter:
+class CSVWriter(BaseWriter):
     """Потомок BaseWriter с переопределением метода write для генерации файла в csv формате"""
 
-    """Ваша реализация"""
+    def write(self, data: list[list[int, str, float]]) -> StringIO:
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerows(data)
+        return output
 
-    pass
 
-
-class YAMLWriter:
+class YAMLWriter(BaseWriter):
     """Потомок BaseWriter с переопределением метода write для генерации файла в yaml формате"""
 
-    """Ваша реализация"""
-
-    pass
+    def write(self, data: list[list[int, str, float]]) -> StringIO:
+        output = StringIO()
+        yaml.dump(data, output, default_flow_style=False)
+        return output
 
 
 class DataGenerator:
@@ -143,8 +152,18 @@ class DataGenerator:
         """Генерирует матрицу данных заданного размера."""
 
         data: list[list[int, str, float]] = []
-        """Ваша реализация"""
-
+        if matrix_size in range(4, 16):
+            data = [[0]*matrix_size for i in range(matrix_size)]
+            characters = string.ascii_letters + string.digits
+            for i in range(matrix_size):
+                for j in range(matrix_size):
+                    n = random.randint(1, 3)
+                    if n == 1:
+                        data[i][j] = random.randint(0, 99999)
+                    elif n == 2:
+                        data[i][j] = ''.join(random.choices(characters, k=5))
+                    else:
+                        data[i][j] = round(random.uniform(0, 99999), 5)
         self.data = data
 
     def to_file(self, path: str, writer) -> None:
@@ -155,6 +174,8 @@ class DataGenerator:
         :param writer: Одна из реализаций классов потомков от BaseWriter
         """
 
-        """Ваша реализация"""
-
-        pass
+        if not self.data:
+            raise ValueError("Размер матрицы должен быть от 4 до 15.")
+        with open(path, "w") as f:
+            output = writer.write(self.data)
+            f.write(output.getvalue())

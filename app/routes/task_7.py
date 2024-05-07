@@ -1,6 +1,6 @@
 import logging
 from contextvars import ContextVar
-
+from datetime import datetime
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -19,15 +19,31 @@ client_host: ContextVar[str | None] = ContextVar("client_host", default=None)
 Дописать класс CustomMiddleware.
 Добавить middleware в приложение (app).
 """
+
+logging.basicConfig(
+    filename='output.log',
+    level=logging.INFO,
+    format="[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - | %(message)s |",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+
 class CustomMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Load request ID from headers if present. Generate one otherwise."""
         client_host.set(request.client.host)
         output_log.info(f"Accepted request {request.method} {request.url}")
+        start_time = datetime.now()
+        try:
+            response = await call_next(request)
+            execution_time_sec = (datetime.now() - start_time).total_seconds()
+            output_log.info(
+                f"[{datetime.now().isoformat()}] {{{__file__}:{10}}} INFO | {execution_time_sec:.2f} | "
+                f"{request.method} | {request.url.path} | {response.status_code} |"
+            )
+            return response
+        except Exception as e:
+            output_log.error(f"Internal Server Error: {e}")
+            response = Response("Internal Server Error", status_code=500)
 
-        """Ваша реализация."""
-
-        # В случае ошибки при запросе, возвращать код 500
-        response = Response("Internal Server Error", status_code=500)
-
-        return response
+            return response

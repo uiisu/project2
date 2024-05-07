@@ -9,12 +9,21 @@ router = APIRouter(tags=["Стажировка"])
 Оберните роут new_request() этим декоратором.
 Подумать, как хранить переменную с кол-вом сделаных запросов.
 """
-def count_requests():
-    pass
+
+request_count = 0
+
+
+def count_requests(func):
+    async def wrapper():
+        global request_count
+        request_count += 1
+        return await func()
+    return wrapper
 
 
 @router.get("/new_request", description="Задание_8. Декоратор - счётчик запросов.")
+@count_requests
 async def new_request():
     """Возвращает кол-во сделанных запросов."""
 
-    return Response()
+    return Response(content=f"Кол-во сделанных запросов: {request_count}", media_type="text/plain")

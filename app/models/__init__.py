@@ -65,6 +65,14 @@ class BigJson(BaseModel):
     meta: Meta
 
 
+class SmallJson(BaseModel):
+    """
+    Attributes:
+        file_type (str): Тип файла ("json", "csv", "yaml").
+        matrix_size (int): Размер матрицы.
+    """
+    file_type: str
+    matrix_size: int
 # class UserRequest(BaseModel):
 #     name: str
 #     message: str
