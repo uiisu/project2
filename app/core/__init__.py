@@ -48,7 +48,9 @@ def convert_roman_to_arabic(number: str) -> int:
                      'X': 10, 'IX': 9, 'V': 5, 'IV': 4, 'I': 1}
     arabic = 0
     flag = True
-    for i in range(len(number)):
+    roman = number
+    i = 0
+    while i < len(number):
         if not flag:
             return -1
         flag = False
@@ -63,7 +65,10 @@ def convert_roman_to_arabic(number: str) -> int:
                 i += 1
                 flag = True
                 break
-    return -1 if arabic == 0 else arabic
+    if (arabic == 0) or (roman != convert_arabic_to_roman(arabic)):
+        return -1
+    else:
+        return arabic
 
 
 def average_age_by_position(file):
